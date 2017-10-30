@@ -2,6 +2,8 @@ package com.shuja1497.mapsfirst;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
+import android.location.Address;
+import android.location.Geocoder;
 import android.location.Location;
 import android.os.Build;
 import android.support.annotation.NonNull;
@@ -10,6 +12,8 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
+import android.view.View;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import com.google.android.gms.location.LocationListener;
@@ -26,6 +30,9 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+
+import java.io.IOException;
+import java.util.List;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback,
         GoogleApiClient.ConnectionCallbacks,
@@ -76,7 +83,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     else
                         {
                         Toast.makeText(this,"Permission Denied",Toast.LENGTH_LONG);
-
                     }
                     return;
                 }
@@ -122,6 +128,43 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 PackageManager.PERMISSION_GRANTED){
             buildGoogleApiClient();
             mMap.setMyLocationEnabled(true);
+        }
+    }
+
+
+    public void onClick(View v) throws IOException {
+        if(v.getId()==R.id.button){
+
+            EditText search = (EditText)findViewById(R.id.edit_query);
+            String location  = search.getText().toString();
+
+            List<Address> addressList = null;
+
+            MarkerOptions markerOptions = new MarkerOptions();
+
+            if(!location.equals("")){
+                Geocoder geocoder = new Geocoder(this);
+
+                addressList = geocoder.getFromLocationName(location,5);//max 5 results
+
+                // we may get 2 or 3 adress .
+                //putting marker on all  adresses
+                for(int i=0;i<addressList.size();i++){
+                    Address myAddress = addressList.get(i);
+                    LatLng latLng = new LatLng(myAddress.getLatitude(), myAddress.getLongitude());
+                    markerOptions.position(latLng);
+                    markerOptions.title("searched results");
+
+                    mMap.addMarker(markerOptions);
+
+                    //animating camera to focus.. will focus on last location
+
+                    mMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
+
+
+                }
+
+            }
         }
     }
 
