@@ -70,19 +70,19 @@ public class GetNearbyPlacesData extends AsyncTask<Object, String, String>{
 
             HashMap<String , String> googlePlace = nearbyPlacesList.get(i);
 
-            String placeName  =googlePlace.get("name");
+            String placeName  =googlePlace.get("place_name");
             String vicinity  = googlePlace.get("vicinity");
             double lat = Double.parseDouble(googlePlace.get("lat"));//google places retuens a string so parse
             Log.d(TAG, "showNearbyPlaces: latitude is "+lat);
+            Log.d(TAG, "showNearbyPlaces: pace name is "+placeName);
             double lng = Double.parseDouble(googlePlace.get("lng"));
             LatLng latLng = new LatLng(lat , lng);
             markerOptions.position(latLng);
             markerOptions.title(placeName+":"+vicinity);
             markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE));
             googleMap.addMarker(markerOptions);
-
             googleMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
-            googleMap.animateCamera(CameraUpdateFactory.zoomBy(10));
+            googleMap.animateCamera(CameraUpdateFactory.zoomBy(-1));
 
         }
     }
