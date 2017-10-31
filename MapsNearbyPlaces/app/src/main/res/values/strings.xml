@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">MapsNearbyPlaces</string>
+    <string name="title_activity_maps">MapNearbyPlaces</string>
+</resources>
