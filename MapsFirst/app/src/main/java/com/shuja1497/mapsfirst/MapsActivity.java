@@ -228,10 +228,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         else
             return true;
     }
-
-
-
-
     @Override
     public void onConnected(@Nullable Bundle bundle) {
 
