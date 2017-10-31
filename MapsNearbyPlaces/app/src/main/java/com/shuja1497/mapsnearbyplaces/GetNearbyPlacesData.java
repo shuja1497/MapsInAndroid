@@ -2,6 +2,7 @@ package com.shuja1497.mapsnearbyplaces;
 
 import android.os.AsyncTask;
 import android.support.v4.view.animation.LinearOutSlowInInterpolator;
+import android.util.Log;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -18,6 +19,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+
 /**
  * Created by shuja1497 on 10/31/17.
  */
@@ -27,6 +29,7 @@ public class GetNearbyPlacesData extends AsyncTask<Object, String, String>{
     String googlePlacesData;
     GoogleMap googleMap;
     String url;
+    public static final String TAG = "NEARBYPLACES";
 
 
     @Override
@@ -67,15 +70,15 @@ public class GetNearbyPlacesData extends AsyncTask<Object, String, String>{
 
             HashMap<String , String> googlePlace = nearbyPlacesList.get(i);
 
-            String placeName  =googlePlace.get("place_name");
+            String placeName  =googlePlace.get("name");
             String vicinity  = googlePlace.get("vicinity");
             double lat = Double.parseDouble(googlePlace.get("lat"));//google places retuens a string so parse
+            Log.d(TAG, "showNearbyPlaces: latitude is "+lat);
             double lng = Double.parseDouble(googlePlace.get("lng"));
-
             LatLng latLng = new LatLng(lat , lng);
             markerOptions.position(latLng);
-            markerOptions.title(placeName +":" + vicinity);
-            markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_CYAN));
+            markerOptions.title(placeName+":"+vicinity);
+            markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE));
             googleMap.addMarker(markerOptions);
 
             googleMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));

@@ -12,6 +12,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
+import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -38,12 +39,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         GoogleApiClient.OnConnectionFailedListener,
         LocationListener {
 
+    private static final String TAG = "MapsActivity";
     private GoogleMap mMap;
     private GoogleApiClient client;
     private LocationRequest locationRequest;
     private Location lastLocation;
     private Marker currentLocation;
     public static final int REQUEST_LOCATION_CODE =99;
+
+    int PROXIMITY_RADIUS =5000;
+    double latitude, longitude;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -131,8 +136,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
 
-    public void onClick(View v) throws IOException {
-        if(v.getId()==R.id.button){
+    public void onClick(View v) {
+
+        Object dataTransfer[] = new Object[2];// will store mMap and url
+        GetNearbyPlacesData getNearbyPlacesData = new GetNearbyPlacesData();
+
+
+        switch (v.getId())
+        {
+
+        case R.id.button_search :
 
             EditText search = (EditText)findViewById(R.id.edit_query);
             String location  = search.getText().toString();
@@ -144,7 +157,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             if(!location.equals("")){
                 Geocoder geocoder = new Geocoder(this);
 
-                addressList = geocoder.getFromLocationName(location,5);//max 5 results
+                try {
+                    addressList = geocoder.getFromLocationName(location,5);//max 5 results
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
 
                 // we may get 2 or 3 adress .
                 //putting marker on all  adresses
@@ -162,9 +179,64 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
 
                 }
-
             }
+            break;
+
+            case R.id.button_hospitals:
+                //clearing all markers from the map
+                mMap.clear();
+                String hospital = "hospital";
+                String url = getUrl(latitude, longitude, hospital);
+
+                dataTransfer[0] = mMap;
+                dataTransfer[1] = url;
+
+                getNearbyPlacesData = new GetNearbyPlacesData();
+                getNearbyPlacesData.execute(dataTransfer);
+                Toast.makeText(MapsActivity.this, "showing nearby hospitals", Toast.LENGTH_LONG).show();
+                break;
+
+            case R.id.button_restr:
+                //clearing all markers from the map
+                mMap.clear();
+                String restr = "restaurant";
+                url = getUrl(latitude, longitude, restr);
+                dataTransfer[0] = mMap;
+                dataTransfer[1] = url;
+
+                getNearbyPlacesData = new GetNearbyPlacesData();
+                getNearbyPlacesData.execute(dataTransfer);
+                Toast.makeText(MapsActivity.this, "showing nearby restaurants", Toast.LENGTH_LONG).show();
+                break;
+
+            case R.id.button_schools:
+                //clearing all markers from the map
+                mMap.clear();
+                String school = "school";
+                 url = getUrl(latitude, longitude, school);
+
+                dataTransfer[0] = mMap;
+                dataTransfer[1] = url;
+
+                getNearbyPlacesData = new GetNearbyPlacesData();
+                getNearbyPlacesData.execute(dataTransfer);
+                Toast.makeText(MapsActivity.this, "showing nearby schools", Toast.LENGTH_LONG).show();
+                break;
         }
+    }
+
+    private String getUrl(double lat , double lng , String nearbyPlaces){
+
+        StringBuilder googlePlaceurl = new StringBuilder("https://maps.googleapis.com/maps/api/place/nearbysearch/json?");
+        googlePlaceurl.append("location="+lat+","+lng);
+        googlePlaceurl.append("&radius="+PROXIMITY_RADIUS);
+        googlePlaceurl.append("&type="+nearbyPlaces);
+        googlePlaceurl.append("&sensor=true");
+        googlePlaceurl.append("&key="+"AIzaSyC03kzr-GWMo6zFnYDQR662vPMPifnThmA");
+
+        Log.d(TAG, "getUrl: lat is "+lat);
+
+        return googlePlaceurl.toString();
     }
 
     protected synchronized void buildGoogleApiClient(){
@@ -184,6 +256,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         lastLocation = location;
 
+        latitude = location.getLatitude();
+        longitude = location.getLongitude();
+
         if(currentLocation!= null){
             currentLocation.remove();
         }
@@ -197,12 +272,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         currentLocation = mMap.addMarker(markerOptions);
 
         mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
-        mMap.animateCamera(CameraUpdateFactory.zoomBy(10));
+        //mMap.animateCamera(CameraUpdateFactory.zoomBy(10));
 
         if (client!= null){
             LocationServices.FusedLocationApi.removeLocationUpdates(client, this);
         }
-
     }
 
     //checking location permission
