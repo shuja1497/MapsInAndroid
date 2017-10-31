@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">MapsNearbyPlaces</string>
     <string name="title_activity_maps">MapNearbyPlaces</string>
+    <string name="gps_network_not_enabled">gps network not enabled</string>
+    <string name="open_location_settings">open location settings</string>
+    <string name="Cancel">Cancel</string>
 </resources>
