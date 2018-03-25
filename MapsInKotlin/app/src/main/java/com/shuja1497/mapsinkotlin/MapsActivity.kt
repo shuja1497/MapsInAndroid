@@ -1,8 +1,10 @@
 package com.shuja1497.mapsinkotlin
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Location
+import android.os.Build
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.support.v4.app.ActivityCompat
@@ -26,23 +28,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
         LocationListener{
-    override fun onConnected(p0: Bundle?) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    override fun onConnectionSuspended(p0: Int) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    override fun onConnectionFailed(p0: ConnectionResult) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    override fun onLocationChanged(p0: Location?) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
     private lateinit var mMap: GoogleMap
+
+    private lateinit var googleApiClient: GoogleApiClient
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_maps)
@@ -61,20 +50,53 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
      * it inside the SupportMapFragment. This method will only be triggered once the user has
      * installed Google Play services and returned to the app.
      */
+    @SuppressLint("MissingPermission")
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
-
         // Add a marker in Sydney and move the camera
-        val sydney = LatLng(-34.0, 151.0)
-        mMap.addMarker(MarkerOptions().position(sydney).title("Marker in Sydney"))
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney))
+//        val sydney = LatLng(-34.0, 151.0)
+//        mMap.addMarker(MarkerOptions().position(sydney).title("Marker in Sydney"))
+//        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney))
+//
+//        val a = this.checkPermission(Context.LOCATION_SERVICE,0,1)
+//        Toast.makeText(this, a.toString(), Toast.LENGTH_LONG).show()
+//        mMap.isMyLocationEnabled = true
+//        mMap.uiSettings.isZoomControlsEnabled = true
+//        mMap.uiSettings.isZoomGesturesEnabled = true
+//        mMap.uiSettings.isCompassEnabled = true
+//        mMap.uiSettings.isRotateGesturesEnabled = true
 
-        val a = this.checkPermission(Context.LOCATION_SERVICE,0,1)
-        Toast.makeText(this, a.toString(), Toast.LENGTH_LONG).show()
+        buildGoogleApiClient()
+
         mMap.isMyLocationEnabled = true
-        mMap.uiSettings.isZoomControlsEnabled = true
-        mMap.uiSettings.isZoomGesturesEnabled = true
-        mMap.uiSettings.isCompassEnabled = true
-        mMap.uiSettings.isRotateGesturesEnabled = true
     }
+
+    protected fun buildGoogleApiClient() {
+        googleApiClient = GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(LocationServices.API)
+                .build()
+
+        googleApiClient.connect()
+
+    }
+
+
+    override fun onConnected(p0: Bundle?) {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun onConnectionSuspended(p0: Int) {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun onConnectionFailed(p0: ConnectionResult) {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun onLocationChanged(p0: Location?) {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
 }
