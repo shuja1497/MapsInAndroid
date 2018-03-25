@@ -6,12 +6,15 @@ import android.content.Context
 import android.content.SyncRequest
 import android.content.pm.PackageManager
 import android.graphics.BitmapFactory
+import android.location.Address
+import android.location.Geocoder
 import android.location.Location
 import android.os.Build
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
+import android.view.View
 import android.widget.Toast
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.api.GoogleApiClient
@@ -25,6 +28,7 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
+import kotlinx.android.synthetic.main.activity_maps.*
 
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
@@ -85,6 +89,37 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
             buildGoogleApiClient()
             mMap.isMyLocationEnabled = true
 
+        }
+    }
+
+    public fun onClick(view:View){
+
+        when(view.id){
+
+            R.id.button_search->{
+
+                val searchString = editText_search.text.toString()
+
+                if (searchString.equals("")){
+                    Toast.makeText(this, "Please enter a location", Toast.LENGTH_LONG).show()
+                }
+                else{
+
+                    val geocoder = Geocoder(this)
+                    val addresses: List<Address> = geocoder.getFromLocationName(searchString,30)
+                    var markerOptions: MarkerOptions
+                    var latLng:LatLng
+
+                    addresses.forEach {
+                        latLng = LatLng(it.latitude,  it.longitude)
+                        markerOptions = MarkerOptions().position(latLng).title("Search Results")
+                        mMap.addMarker(markerOptions)
+                        mMap.animateCamera(CameraUpdateFactory.newLatLng(latLng))
+                        mMap.uiSettings.isZoomControlsEnabled=true
+                    }
+                    Toast.makeText(this, "Searched successfully", Toast.LENGTH_LONG).show()
+                }
+            }
         }
     }
 
