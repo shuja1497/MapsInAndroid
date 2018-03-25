@@ -36,7 +36,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
     private lateinit var locationRequest: LocationRequest
     private lateinit var lastLocation: Location
 
-    private lateinit var currentLocationMarker: Marker
+    private  var currentLocationMarker: Marker? = null
 
     public val REQUEST_LOCATION_CODE: Int = 99
 
@@ -44,6 +44,11 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_maps)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
+            checkLocationPermission()
+        }
+
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         val mapFragment = supportFragmentManager
                 .findFragmentById(R.id.map) as SupportMapFragment
@@ -74,10 +79,13 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
 //        mMap.uiSettings.isZoomGesturesEnabled = true
 //        mMap.uiSettings.isCompassEnabled = true
 //        mMap.uiSettings.isRotateGesturesEnabled = true
+        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) {
 
-        buildGoogleApiClient()
+            buildGoogleApiClient()
+            mMap.isMyLocationEnabled = true
 
-        mMap.isMyLocationEnabled = true
+        }
     }
 
     protected fun buildGoogleApiClient() {
@@ -112,7 +120,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
         lastLocation= location!!
 
         if (currentLocationMarker != null){
-            currentLocationMarker.remove()
+            currentLocationMarker?.remove()
         }
 
         val latLng = LatLng(lastLocation.latitude, lastLocation.longitude)
@@ -152,6 +160,29 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
             return false
         } else {
             return true
+        }
+    }
+
+    // to check if the permission was granted or not .
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+
+        when(requestCode){
+            REQUEST_LOCATION_CODE->{
+                if(grantResults.size>0 && grantResults[0]==PackageManager.PERMISSION_GRANTED){
+                    // permission granted
+                    if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)
+                                                            == PackageManager.PERMISSION_GRANTED){
+                        if (googleApiClient==null){
+                            buildGoogleApiClient()
+                        }
+                        mMap.isMyLocationEnabled=true
+                    }
+                }else{
+                    // permission denied
+                    Toast.makeText(this, "Permission denied", Toast.LENGTH_LONG).show()
+                }
+                return
+            }
         }
     }
 
