@@ -1,8 +1,11 @@
 package com.shuja1497.mapsinkotlin
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.SyncRequest
 import android.content.pm.PackageManager
+import android.graphics.BitmapFactory
 import android.location.Location
 import android.os.Build
 import android.support.v7.app.AppCompatActivity
@@ -14,14 +17,14 @@ import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.api.GoogleApiClient
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationListener
+import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationServices
 
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.gms.maps.model.*
 
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
@@ -29,8 +32,14 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
         GoogleApiClient.OnConnectionFailedListener,
         LocationListener{
     private lateinit var mMap: GoogleMap
-
     private lateinit var googleApiClient: GoogleApiClient
+    private lateinit var locationRequest: LocationRequest
+    private lateinit var lastLocation: Location
+
+    private lateinit var currentLocationMarker: Marker
+
+    public val REQUEST_LOCATION_CODE: Int = 99
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -83,20 +92,73 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
     }
 
 
+ // getting current location of the user
+    @SuppressLint("RestrictedApi")
     override fun onConnected(p0: Bundle?) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+
+        locationRequest = LocationRequest()
+        locationRequest.interval = 1000
+        locationRequest.fastestInterval = 1000
+        locationRequest.priority = LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY
+
+        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)==
+                PackageManager.PERMISSION_GRANTED) {
+            LocationServices.FusedLocationApi.requestLocationUpdates(googleApiClient, locationRequest, this)
+        }
+    }
+
+    // setting the marker for the last location of the user
+    override fun onLocationChanged(location: Location?) {
+        lastLocation= location!!
+
+        if (currentLocationMarker != null){
+            currentLocationMarker.remove()
+        }
+
+        val latLng = LatLng(lastLocation.latitude, lastLocation.longitude)
+
+        val markerOptions = MarkerOptions()
+                .position(latLng)
+                .title("Current Location")
+                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_VIOLET))
+
+        currentLocationMarker = mMap.addMarker(markerOptions)
+
+        // moving camera to a location
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng))
+        mMap.animateCamera(CameraUpdateFactory.zoomBy(10.0F))
+
+        // stop location update after setting current location
+        if (googleApiClient!=null){
+            LocationServices.FusedLocationApi.removeLocationUpdates(googleApiClient, this)
+        }
+    }
+
+    // to check if the permission is granted or not
+    public fun checkLocationPermission(): Boolean{
+        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)
+        != PackageManager.PERMISSION_GRANTED){
+            // if permission not granted by the device then the app has to explicitly ask the user for the permission
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                            android.Manifest.permission.ACCESS_FINE_LOCATION)){
+                // request the permission
+                ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                        REQUEST_LOCATION_CODE)
+            } else
+                run {
+                    ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                            REQUEST_LOCATION_CODE)
+                }
+            return false
+        } else {
+            return true
+        }
     }
 
     override fun onConnectionSuspended(p0: Int) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
     override fun onConnectionFailed(p0: ConnectionResult) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    override fun onLocationChanged(p0: Location?) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
 }
