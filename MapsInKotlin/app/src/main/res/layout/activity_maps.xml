@@ -1,8 +1,40 @@
-<fragment xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:map="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
+<RelativeLayout android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+<fragment
     android:id="@+id/map"
     android:name="com.google.android.gms.maps.SupportMapFragment"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.shuja1497.mapsinkotlin.MapsActivity" />
+    tools:context="com.shuja1497.mapsinkotlin.MapsActivity"
+    android:layout_alignParentBottom="true"
+    android:layout_alignParentStart="true"
+    android:layout_below="@+id/button_search"/>
+
+    <EditText
+        android:id="@+id/editText_search"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="10dp"
+        android:ems="10"
+        android:inputType="textPersonName"
+        android:hint="Search"
+        android:layout_toLeftOf="@+id/button_search"
+        />
+
+    <Button
+        android:id="@+id/button_search"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignTop="@+id/editText_search"
+        android:layout_marginEnd="5dp"
+        android:onClick="onClick"
+        android:text="Search"
+        android:textAllCaps="false"
+        android:layout_marginStart="5dp"/>
+</RelativeLayout>
