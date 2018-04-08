@@ -120,6 +120,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
                     Toast.makeText(this, "Searched successfully", Toast.LENGTH_LONG).show()
                 }
             }
+
+            R.id.button_search_nearby->{
+            }
         }
     }
 
@@ -178,7 +181,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
     }
 
     // to check if the permission is granted or not
-    public fun checkLocationPermission(): Boolean{
+     fun checkLocationPermission(): Boolean{
         if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)
         != PackageManager.PERMISSION_GRANTED){
             // if permission not granted by the device then the app has to explicitly ask the user for the permission
