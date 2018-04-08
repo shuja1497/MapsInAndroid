@@ -2,10 +2,7 @@ package com.shuja1497.mapsinkotlin
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.content.Context
-import android.content.SyncRequest
 import android.content.pm.PackageManager
-import android.graphics.BitmapFactory
 import android.location.Address
 import android.location.Geocoder
 import android.location.Location
@@ -18,7 +15,6 @@ import android.view.View
 import android.widget.Toast
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.api.GoogleApiClient
-import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationListener
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationServices
@@ -122,6 +118,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
             }
 
             R.id.button_search_nearby->{
+                //clearing all markers from the map
+                mMap.clear()
+                val searchNearbyString = editText_search_nearby.text.toString()
+                val latLng = latLng
             }
         }
     }
@@ -153,6 +153,11 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
         }
     }
 
+    private val latLng: LatLng
+        get() {
+            return LatLng(lastLocation.latitude, lastLocation.longitude)
+        }
+
     // setting the marker for the last location of the user
     override fun onLocationChanged(location: Location?) {
         lastLocation= location!!
@@ -161,7 +166,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
             currentLocationMarker?.remove()
         }
 
-        val latLng = LatLng(lastLocation.latitude, lastLocation.longitude)
+        val latLng = latLng
 
         val markerOptions = MarkerOptions()
                 .position(latLng)
