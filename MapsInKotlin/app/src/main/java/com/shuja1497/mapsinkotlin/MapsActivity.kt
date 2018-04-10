@@ -2,10 +2,7 @@ package com.shuja1497.mapsinkotlin
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.content.Context
-import android.content.SyncRequest
 import android.content.pm.PackageManager
-import android.graphics.BitmapFactory
 import android.location.Address
 import android.location.Geocoder
 import android.location.Location
@@ -18,7 +15,6 @@ import android.view.View
 import android.widget.Toast
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.api.GoogleApiClient
-import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationListener
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationServices
@@ -28,6 +24,9 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.Disposable
+import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_maps.*
 
 
@@ -44,6 +43,12 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
 
     public val REQUEST_LOCATION_CODE: Int = 99
 
+
+    val nearbyApiService: NearbyApiService by lazy {
+        NearbyApiService.create()
+    }
+
+    var disposable: Disposable? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -120,7 +125,57 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
                     Toast.makeText(this, "Searched successfully", Toast.LENGTH_LONG).show()
                 }
             }
+
+            R.id.button_search_nearby->{
+                //clearing all markers from the map
+                mMap.clear()
+                val searchNearbyString = editText_search_nearby.text.toString()
+                val latLng = latLng
+                searchNearby(latLng, searchNearbyString, 500, mMap)
+            }
         }
+    }
+
+    private fun searchNearby(latLng: LatLng, searchNearbyString: String, radius: Int, mMap: GoogleMap) {
+
+        Toast.makeText(this,"searching started ", Toast.LENGTH_LONG).show()
+
+
+        val location = "${latLng.latitude},${latLng.longitude}"
+        disposable = nearbyApiService.getNearbyLocations(location,radius,searchNearbyString,"AIzaSyDpv5MRVR9lWXpx-MiodI_ixzT3OJsAnvc")
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                        {
+//                            Toast.makeText(this,it.results.toString(), Toast.LENGTH_LONG).show()
+                            markNearbyLocationsOnMap(it.results.subList(0,6), mMap)
+                        },
+                        {
+                            Toast.makeText(this,"Error:\n"+it.cause.toString(), Toast.LENGTH_LONG).show()
+                        }
+                )
+    }
+
+    private fun markNearbyLocationsOnMap(results: List<Result>, mMap: GoogleMap) {
+
+        results.forEach {
+            var markerOptions: MarkerOptions
+            val vicinity = it.vicinity
+            val placeName = it.name
+            val latLng = LatLng(it.geometry.location.lat,it.geometry.location.lng)
+            markerOptions = MarkerOptions().position(latLng)
+                                           .title(placeName+":"+vicinity)
+                                           .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE))
+            mMap.addMarker(markerOptions)
+            mMap.uiSettings.isZoomControlsEnabled = true
+            mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng))
+            mMap.animateCamera(CameraUpdateFactory.zoomBy(-1f))
+        }
+    }
+
+    override fun onPause() {
+//        disposable?.dispose()
+        super.onPause()
     }
 
     protected fun buildGoogleApiClient() {
@@ -131,7 +186,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
                 .build()
 
         googleApiClient.connect()
-
     }
 
 
@@ -149,6 +203,11 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
             LocationServices.FusedLocationApi.requestLocationUpdates(googleApiClient, locationRequest, this)
         }
     }
+
+    private val latLng: LatLng
+        get() {
+            return LatLng(lastLocation.latitude, lastLocation.longitude)
+        }
 
     // setting the marker for the last location of the user
     override fun onLocationChanged(location: Location?) {
@@ -178,7 +237,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
     }
 
     // to check if the permission is granted or not
-    public fun checkLocationPermission(): Boolean{
+     fun checkLocationPermission(): Boolean{
         if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)
         != PackageManager.PERMISSION_GRANTED){
             // if permission not granted by the device then the app has to explicitly ask the user for the permission
