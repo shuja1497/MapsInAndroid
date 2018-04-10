@@ -8,7 +8,8 @@ data class Location(val lat: Double, val lng:Double)
 data class Geometry(val location: Location)
 
 data class Result(val geometry: Geometry,
-                          val vicinity: String)
+                  val vicinity: String,
+                  val name: String)
 
 data class Response(val html_attributions: List<Objects>,
                          val results: List<Result>,

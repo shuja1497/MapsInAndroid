@@ -11,7 +11,6 @@ import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
-import android.util.Log
 import android.view.View
 import android.widget.Toast
 import com.google.android.gms.common.ConnectionResult
@@ -29,8 +28,6 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_maps.*
-import java.util.logging.Logger
-import kotlin.math.log
 
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
@@ -134,12 +131,12 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
                 mMap.clear()
                 val searchNearbyString = editText_search_nearby.text.toString()
                 val latLng = latLng
-                searchNearby(latLng, searchNearbyString, 500)
+                searchNearby(latLng, searchNearbyString, 500, mMap)
             }
         }
     }
 
-    private fun searchNearby(latLng: LatLng, searchNearbyString: String, radius: Int) {
+    private fun searchNearby(latLng: LatLng, searchNearbyString: String, radius: Int, mMap: GoogleMap) {
 
         Toast.makeText(this,"searching started ", Toast.LENGTH_LONG).show()
 
@@ -150,12 +147,30 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
                         {
-                            Toast.makeText(this,it.results.toString(), Toast.LENGTH_LONG).show()
+//                            Toast.makeText(this,it.results.toString(), Toast.LENGTH_LONG).show()
+                            markNearbyLocationsOnMap(it.results.subList(0,6), mMap)
                         },
                         {
-                            Toast.makeText(this,"errrorrr", Toast.LENGTH_LONG).show()
+                            Toast.makeText(this,"Error:\n"+it.cause.toString(), Toast.LENGTH_LONG).show()
                         }
                 )
+    }
+
+    private fun markNearbyLocationsOnMap(results: List<Result>, mMap: GoogleMap) {
+
+        results.forEach {
+            var markerOptions: MarkerOptions
+            val vicinity = it.vicinity
+            val placeName = it.name
+            val latLng = LatLng(it.geometry.location.lat,it.geometry.location.lng)
+            markerOptions = MarkerOptions().position(latLng)
+                                           .title(placeName+":"+vicinity)
+                                           .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE))
+            mMap.addMarker(markerOptions)
+            mMap.uiSettings.isZoomControlsEnabled = true
+            mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng))
+            mMap.animateCamera(CameraUpdateFactory.zoomBy(-1f))
+        }
     }
 
     override fun onPause() {
