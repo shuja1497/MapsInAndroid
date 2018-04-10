@@ -11,6 +11,7 @@ import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
+import android.util.Log
 import android.view.View
 import android.widget.Toast
 import com.google.android.gms.common.ConnectionResult
@@ -24,7 +25,12 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.Disposable
+import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_maps.*
+import java.util.logging.Logger
+import kotlin.math.log
 
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
@@ -40,6 +46,12 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
 
     public val REQUEST_LOCATION_CODE: Int = 99
 
+
+    val nearbyApiService: NearbyApiService by lazy {
+        NearbyApiService.create()
+    }
+
+    var disposable: Disposable? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -122,8 +134,33 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
                 mMap.clear()
                 val searchNearbyString = editText_search_nearby.text.toString()
                 val latLng = latLng
+                searchNearby(latLng, searchNearbyString, 500)
             }
         }
+    }
+
+    private fun searchNearby(latLng: LatLng, searchNearbyString: String, radius: Int) {
+
+        Toast.makeText(this,"searching started ", Toast.LENGTH_LONG).show()
+
+
+        val location = "${latLng.latitude},${latLng.longitude}"
+        disposable = nearbyApiService.getNearbyLocations(location,radius,searchNearbyString,"AIzaSyDpv5MRVR9lWXpx-MiodI_ixzT3OJsAnvc")
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                        {
+                            Toast.makeText(this,it.results.toString(), Toast.LENGTH_LONG).show()
+                        },
+                        {
+                            Toast.makeText(this,"errrorrr", Toast.LENGTH_LONG).show()
+                        }
+                )
+    }
+
+    override fun onPause() {
+//        disposable?.dispose()
+        super.onPause()
     }
 
     protected fun buildGoogleApiClient() {
@@ -134,7 +171,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
                 .build()
 
         googleApiClient.connect()
-
     }
 
 
@@ -166,7 +202,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback,
             currentLocationMarker?.remove()
         }
 
-        val latLng = latLng
+        val latLng = LatLng(lastLocation.latitude, lastLocation.longitude)
 
         val markerOptions = MarkerOptions()
                 .position(latLng)

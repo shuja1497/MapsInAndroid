@@ -1,12 +1,15 @@
 package com.shuja1497.mapsinkotlin
 
-data class Location(val lat: String, val lng:String)
+import java.net.SecureCacheResponse
+import java.util.*
+
+data class Location(val lat: Double, val lng:Double)
 
 data class Geometry(val location: Location)
 
-data class Vicinity(val vicinity: Vicinity)
+data class Result(val geometry: Geometry,
+                          val vicinity: String)
 
-data class SingleResponse(val geometry: Geometry,
-                          val vicinity: Vicinity)
-
-data class Result(val results: List<SingleResponse>)
+data class Response(val html_attributions: List<Objects>,
+                         val results: List<Result>,
+                         val status: String)
